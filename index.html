@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no"/>
+    <meta name="google" content="notranslate"/>
+    <meta name="msapplication-tap-highlight" content="no"/>
+    <meta http-equiv="cache-control" content="no-store"/>
+    <meta http-equiv="expires" content="0"/>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <h1>KEK</h1>
+    <button id="button">SEND MESSAGE</button>
+    
+    <div id="data"></div>
+    <script>
+        initWorker();
+        
+        async function initWorker() {
+            if (!navigator.serviceWorker) {
+                return;
+            }
+
+            console.warn('INIT WORKER', navigator.serviceWorker);
+
+            await navigator.serviceWorker.getRegistrations().then((registrations) => {
+                for(let registration of registrations) {
+                    registration.unregister();
+                }
+            })
+
+            navigator.serviceWorker.register(`/service-worker.js?t=${new Date().getTime()}`)
+                .then((registration) => {
+                    console.error('SERVICE WORKER REGISTERED', registration);
+                })
+                .catch((error) => {
+                    console.error(error);
+                })
+        }
+
+        navigator.serviceWorker.addEventListener('message', event => {
+            console.error('========================================');
+            console.error('MESSAGE FROM WORKER !!!!!!', event.data);
+            console.error('========================================');
+
+            sendMessage(event.data.id, event.data.message);
+        });
+
+        const button = document.getElementById('button');
+        button.addEventListener('click', function () {
+            sendMessage();
+        });
+
+        function sendMessage(id = 0, text = 'DEFAULT TEXT') {
+            console.warn('SEND MESSAGE');
+
+            if (window.Notification && Notification.permission === "granted") {
+                new Notification(`${id}, ${text}`);
+                return;
+            }
+
+            if (window.Notification && Notification.permission !== "denied") {
+                Notification.requestPermission(function (status) {
+                    if (status === "granted") {
+                        new Notification(`${id}, ${text}`, { tag: 'SENotification' });
+                        return;
+                    }
+                    alert("Ooops");
+                });
+                return;
+            }
+            alert("Azazazazaza");
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+Run `npm i && node serve.js` to start.
